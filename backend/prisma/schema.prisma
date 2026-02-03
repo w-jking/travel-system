@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Employee {
+  id           Int        @id @default(autoincrement())
+  employeeUuid String     @unique @default(uuid()) @db.Uuid
+  name         String
+  phone        String
+  department   String
+  position     String
+  roleUuid     String     @db.Uuid
+  status       String
+  email        String?
+  hiredAt      DateTime?
+  employeeNo   String?
+  role         Role       @relation(fields: [roleUuid], references: [roleUuid])
+  authAccount  AuthAccount?
+  customers    Customer[]
+  orders       Order[]
+  followUps    FollowUp[]
+  auditLogs    AuditLog[]
+  exportApprovalsRequested ExportApproval[] @relation("ExportRequestor")
+  exportApprovalsReviewed  ExportApproval[] @relation("ExportReviewer")
+  refundApprovalsRequested RefundApproval[] @relation("RefundRequestor")
+  refundApprovalsReviewed  RefundApproval[] @relation("RefundReviewer")
+  orderApprovalsRequested  OrderApproval[]  @relation("OrderRequestor")
+  orderApprovalsReviewed   OrderApproval[]  @relation("OrderReviewer")
+  alerts      Alert[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Customer {
+  id           Int       @id @default(autoincrement())
+  customerUuid String    @unique @default(uuid()) @db.Uuid
+  name         String
+  contact      String
+  level        String
+  ownerUuid    String    @db.Uuid
+  idNumber     String?
+  birthDate    DateTime?
+  preferences  String?
+  notes        String?
+  owner        Employee  @relation(fields: [ownerUuid], references: [employeeUuid])
+  orders       Order[]
+  followUps    FollowUp[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Order {
+  id            Int       @id @default(autoincrement())
+  orderUuid     String    @unique @default(uuid()) @db.Uuid
+  customerUuid  String    @db.Uuid
+  amount        Decimal   @db.Decimal(12, 2)
+  payee         String
+  companyAccountUuid String? @db.Uuid
+  status        String
+  ownerUuid     String    @db.Uuid
+  orderedAt     DateTime
+  departureAt   DateTime?
+  route         String?
+  attachment    String?
+  notes         String?
+  customer      Customer  @relation(fields: [customerUuid], references: [customerUuid])
+  companyAccount CompanyAccount? @relation(fields: [companyAccountUuid], references: [accountUuid])
+  owner         Employee  @relation(fields: [ownerUuid], references: [employeeUuid])
+  followUps     FollowUp[]
+  refundApprovals RefundApproval[]
+  orderApprovals OrderApproval[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model CompanyAccount {
+  id          Int      @id @default(autoincrement())
+  accountUuid String   @unique @default(uuid()) @db.Uuid
+  name        String
+  bankName    String?
+  accountNo   String?
+  status      String
+  notes       String?
+  orders      Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FollowUp {
+  id           Int      @id @default(autoincrement())
+  followUpUuid String   @unique @default(uuid()) @db.Uuid
+  customerUuid String   @db.Uuid
+  orderUuid    String?  @db.Uuid
+  followAt     DateTime
+  channel      String
+  request      String
+  result       String
+  ownerUuid    String   @db.Uuid
+  nextFollowAt DateTime?
+  attachment   String?
+  customer     Customer @relation(fields: [customerUuid], references: [customerUuid])
+  order        Order?   @relation(fields: [orderUuid], references: [orderUuid])
+  owner        Employee @relation(fields: [ownerUuid], references: [employeeUuid])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Role {
+  id          Int             @id @default(autoincrement())
+  roleUuid    String          @unique @default(uuid()) @db.Uuid
+  code        String          @unique
+  name        String
+  description String?
+  status      String
+  employees   Employee[]
+  permissions RolePermission[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model Permission {
+  id             Int          @id @default(autoincrement())
+  permissionUuid String       @unique @default(uuid()) @db.Uuid
+  resource       String
+  action         String
+  scope          String
+  roles          RolePermission[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([resource, action, scope])
+}
+
+model AuthAccount {
+  id              Int      @id @default(autoincrement())
+  authAccountUuid String   @unique @default(uuid()) @db.Uuid
+  employeeUuid    String   @unique @db.Uuid
+  username        String   @unique
+  password        String
+  employee        Employee @relation(fields: [employeeUuid], references: [employeeUuid])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+model RolePermission {
+  id             Int      @id @default(autoincrement())
+  roleUuid       String   @db.Uuid
+  permissionUuid String   @db.Uuid
+  role           Role       @relation(fields: [roleUuid], references: [roleUuid])
+  permission     Permission @relation(fields: [permissionUuid], references: [permissionUuid])
+
+  @@unique([roleUuid, permissionUuid])
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  auditLogUuid String   @unique @default(uuid()) @db.Uuid
+  actorUuid    String   @db.Uuid
+  action       String
+  targetType   String
+  targetUuid   String
+  summary      String
+  beforeData   Json?
+  afterData    Json?
+  actor        Employee @relation(fields: [actorUuid], references: [employeeUuid])
+  createdAt    DateTime @default(now())
+}
+
+model ExportApproval {
+  id                 Int      @id @default(autoincrement())
+  exportApprovalUuid String   @unique @default(uuid()) @db.Uuid
+  requesterUuid      String   @db.Uuid
+  requestedAt        DateTime
+  scope              String
+  status             String
+  reviewerUuid       String?  @db.Uuid
+  reviewedAt         DateTime?
+  comment            String?
+  requester          Employee @relation("ExportRequestor", fields: [requesterUuid], references: [employeeUuid])
+  reviewer           Employee? @relation("ExportReviewer", fields: [reviewerUuid], references: [employeeUuid])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model RefundApproval {
+  id                 Int      @id @default(autoincrement())
+  refundApprovalUuid String   @unique @default(uuid()) @db.Uuid
+  orderUuid          String   @db.Uuid
+  requesterUuid      String   @db.Uuid
+  requestedAt        DateTime
+  status             String
+  reviewerUuid       String?  @db.Uuid
+  reviewedAt         DateTime?
+  comment            String?
+  order              Order    @relation(fields: [orderUuid], references: [orderUuid])
+  requester          Employee @relation("RefundRequestor", fields: [requesterUuid], references: [employeeUuid])
+  reviewer           Employee? @relation("RefundReviewer", fields: [reviewerUuid], references: [employeeUuid])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model OrderApproval {
+  id                Int      @id @default(autoincrement())
+  orderApprovalUuid String   @unique @default(uuid()) @db.Uuid
+  orderUuid         String   @db.Uuid
+  requesterUuid     String   @db.Uuid
+  requestedAt       DateTime
+  status            String
+  reviewerUuid      String?  @db.Uuid
+  reviewedAt        DateTime?
+  comment           String?
+  order             Order    @relation(fields: [orderUuid], references: [orderUuid])
+  requester         Employee @relation("OrderRequestor", fields: [requesterUuid], references: [employeeUuid])
+  reviewer          Employee? @relation("OrderReviewer", fields: [reviewerUuid], references: [employeeUuid])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Alert {
+  id         Int      @id @default(autoincrement())
+  alertUuid  String   @unique @default(uuid()) @db.Uuid
+  ruleCode   String
+  summary    String
+  status     String
+  actorUuid  String?  @db.Uuid
+  targetType String?
+  targetUuid String?
+  meta       Json?
+  actor      Employee? @relation(fields: [actorUuid], references: [employeeUuid])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

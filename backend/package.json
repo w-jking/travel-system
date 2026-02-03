@@ -1,0 +1,35 @@
+{
+  "name": "travel-system-backend",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "start": "node dist/main.js",
+    "start:dev": "ts-node src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "prisma:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset -f",
+    "db:seed": "ts-node prisma/seed.ts",
+    "test:auto": "ts-node src/dev/auto-test.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.4.5",
+    "@nestjs/core": "^10.4.5",
+    "@nestjs/platform-express": "^10.4.5",
+    "@prisma/client": "^5.6.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.2",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.16.10",
+    "prisma": "^5.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3",
+    "supertest": "^6.3.4"
+  }
+}

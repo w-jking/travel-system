@@ -1,0 +1,23 @@
+## 架构文件说明
+
+- /frontend：前端应用代码与资源  
+- /frontend/src/App.tsx：前端入口页面  
+- /frontend/src/main.tsx：前端应用挂载入口  
+- /frontend/vite.config.ts：前端构建与开发配置  
+- /backend：后端应用代码与配置  
+- /backend/src/main.ts：后端服务启动入口  
+- /backend/src/app.module.ts：后端应用模块入口  
+- /backend/src/app.controller.ts：基础健康检查与根路由  
+- /backend/src/app.service.ts：基础服务逻辑  
+- /backend/src/auth：认证与权限模块  
+- /backend/src/employees：员工管理模块  
+- /backend/src/customers：客户管理模块  
+- /backend/prisma/schema.prisma：数据库模型与关系定义  
+- /backend/prisma/seed.ts：后端种子数据脚本  
+- /backend/.env.example：后端环境变量样例  
+- /.env.example：本地环境变量样例  
+- /memory-bank/implementation-plan.md：实施计划与执行标准  
+- /memory-bank/product-requirements-document.md：需求说明  
+- /memory-bank/tech-stack.md：技术栈选择  
+- /memory-bank/data-models.md：核心数据模型清单  
+- /memory-bank/progress.md：进展记录  
